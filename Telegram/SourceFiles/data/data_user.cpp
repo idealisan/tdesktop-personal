@@ -582,6 +582,9 @@ void UserData::setAccessHash(uint64 accessHash) {
 }
 
 void UserData::setFlags(UserDataFlags which) {
+	// Personal build: never store the "restrict saving content" flags, so the
+	// whole interface treats the private chat as forwardable.
+	which &= ~(Flag::NoForwardsMyEnabled | Flag::NoForwardsPeerEnabled);
 	if (!isBot()) {
 		which &= ~Flag::Forum;
 	}

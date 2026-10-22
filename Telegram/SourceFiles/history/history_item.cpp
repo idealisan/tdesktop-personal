@@ -3032,38 +3032,10 @@ void HistoryItem::contributeToSlowmode(TimeId realDate) {
 }
 
 void HistoryItem::clearMediaAsExpired() {
-	const auto media = this->media();
-	if (!media || !media->ttlSeconds()) {
-		return;
-	}
-	unarmMediaDestroy();
-	auto &owner = _history->owner();
-	if (const auto document = media->document()) {
-		document->cancel();
-		if (const auto active = document->activeMediaView()) {
-			active->setBytes(QByteArray());
-		}
-		owner.cache().remove(document->cacheKey());
-		owner.cache().remove(document->goodThumbnailCacheKey());
-
-		applyEditionToHistoryCleared();
-		auto text = (document->isVideoFile()
-			? tr::lng_ttl_video_expired
-			: document->isVoiceMessage()
-			? tr::lng_ttl_voice_expired
-			: document->isVideoMessage()
-			? tr::lng_ttl_round_expired
-			: tr::lng_message_empty)(tr::now, tr::marked);
-		updateServiceText({ std::move(text) });
-		_flags |= MessageFlag::ReactionsAllowed;
-	} else if (const auto photo = media->photo()) {
-		applyEditionToHistoryCleared();
-		photo->clearLocalCache();
-		updateServiceText({
-			tr::lng_ttl_photo_expired(tr::now, tr::marked)
-		});
-		_flags |= MessageFlag::ReactionsAllowed;
-	}
+	// Personal build: self-destructing media is never destroyed locally, so it
+	// stays viewable and saveable after being opened. The "viewed" report to
+	// the server is sent separately, through markContentsRead() and
+	// messages.readMessageContents, and is kept untouched.
 }
 
 void HistoryItem::addToUnreadThings(HistoryUnreadThings::AddType type) {
@@ -3431,17 +3403,14 @@ bool HistoryItem::canStopPoll() const {
 }
 
 bool HistoryItem::forbidsForward() const {
-	return (_flags & MessageFlag::NoForwards);
+	// Personal build: the per-message noforwards flag is ignored, so every
+	// message is treated by the interface as forwardable and copyable.
+	return false;
 }
 
 bool HistoryItem::forbidsSaving() const {
-	if (forbidsForward()) {
-		return true;
-	} else if (_media && _media->ttlSeconds()) {
-		return true;
-	} else if (const auto invoice = _media ? _media->invoice() : nullptr) {
-		return HasExtendedMedia(*invoice);
-	}
+	// Personal build: saving and downloading are never forbidden, including
+	// self-destructing media and paid media.
 	return false;
 }
 

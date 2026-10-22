@@ -134,6 +134,9 @@ void ChatData::invalidateParticipants() {
 }
 
 void ChatData::setFlags(ChatDataFlags which) {
+	// Personal build: never store the "restrict saving content" flag, so the
+	// whole interface treats the group as forwardable.
+	which &= ~Flag::NoForwards;
 	const auto wasIn = amIn();
 	_flags.set(which);
 	if (wasIn && !amIn()) {

@@ -1013,7 +1013,8 @@ crl::time MediaPhoto::ttlSeconds() const {
 }
 
 bool MediaPhoto::allowsForward() const {
-	return !ttlSeconds();
+	// Personal build: self-destructing photos may be forwarded.
+	return true;
 }
 
 bool MediaPhoto::updateInlineResultMedia(const MTPMessageMedia &media) {
@@ -1429,7 +1430,8 @@ crl::time MediaFile::ttlSeconds() const {
 }
 
 bool MediaFile::allowsForward() const {
-	return !ttlSeconds();
+	// Personal build: self-destructing files may be forwarded.
+	return true;
 }
 
 bool MediaFile::updateInlineResultMedia(const MTPMessageMedia &media) {

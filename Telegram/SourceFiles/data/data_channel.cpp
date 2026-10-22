@@ -179,6 +179,9 @@ void ChannelData::setAccessHash(uint64 accessHash) {
 }
 
 void ChannelData::setFlags(ChannelDataFlags which) {
+	// Personal build: never store the "restrict saving content" flag, so the
+	// whole interface treats the channel as forwardable.
+	which &= ~Flag::NoForwards;
 	if (which & Flag::MonoforumAdmin) {
 		which |= Flag::Monoforum;
 	}

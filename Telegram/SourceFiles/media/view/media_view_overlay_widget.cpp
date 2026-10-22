@@ -6095,11 +6095,8 @@ void OverlayWidget::setSystemMediaControls(
 }
 
 bool OverlayWidget::contentNeedsScreenshotProtection() const {
-	if (const auto story = _stories ? _stories->story() : nullptr) {
-		return story->forbidsForward();
-	}
-	return (_history && !_history->peer->allowsForwarding())
-		|| (_message && _message->forbidsSaving());
+	// Personal build: screenshots are never blocked by content restrictions.
+	return false;
 }
 
 void OverlayWidget::refreshScreenshotProtection() {

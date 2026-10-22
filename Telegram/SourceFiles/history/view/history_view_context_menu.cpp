@@ -629,6 +629,61 @@ void AddForwardAction(
 	AddForwardMessageAction(menu, request, list);
 }
 
+void ForwardUrl(
+		not_null<Window::SessionController*> controller,
+		FullMsgId itemId,
+		Context context) {
+	const auto item = controller->session().data().message(itemId);
+	if (!item || !item->hasDirectLink()) {
+		return;
+	}
+	const auto link = item->history()->session().api().exportDirectMessageLink(
+		item,
+		(context == Context::Replies),
+		false,
+		std::nullopt);
+	if (link.isEmpty()) {
+		return;
+	}
+	QGuiApplication::clipboard()->setText(link);
+	const auto show = controller->uiShow();
+	const auto chosen = [=](not_null<Data::Thread*> thread) {
+		if (!Data::CanSendTexts(thread)) {
+			show->showToast(tr::lng_share_cant(tr::now));
+			return false;
+		}
+		auto action = Api::SendAction(thread);
+		action.replyTo.monoforumPeerId = thread->monoforumPeerId();
+		auto message = Api::MessageToSend(std::move(action));
+		message.textWithTags = TextWithTags{ link, TextWithTags::Tags() };
+		thread->owningHistory()->session().api().sendMessage(
+			std::move(message));
+		return true;
+	};
+	Window::ShowChooseRecipientBox(controller, chosen);
+}
+
+bool AddForwardUrlAction(
+		not_null<Ui::PopupMenu*> menu,
+		const ContextMenuRequest &request) {
+	const auto item = request.item;
+	if (!request.selectedItems.empty()
+		|| !item
+		|| !item->hasDirectLink()
+		|| IsAnchoredEphemeral(item)) {
+		return false;
+	}
+	const auto itemId = item->fullId();
+	const auto context = request.view
+		? request.view->context()
+		: Context::History;
+	const auto controller = request.navigation->parentController();
+	menu->addAction(tr::lng_context_forward_url(tr::now), [=] {
+		ForwardUrl(controller, itemId, context);
+	}, &st::menuIconForward);
+	return true;
+}
+
 void AddOfferAction(
 		not_null<Ui::PopupMenu*> menu,
 		const ContextMenuRequest &request,
@@ -1405,6 +1460,7 @@ void AddMessageActions(
 		not_null<ListWidget*> list) {
 	AddPostLinkAction(menu, request);
 	AddForwardAction(menu, request, list);
+	AddForwardUrlAction(menu, request);
 	AddOfferAction(menu, request, list);
 	AddSendNowAction(menu, request, list);
 	AddDeleteAction(menu, request, list);

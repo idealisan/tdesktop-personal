@@ -5543,6 +5543,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 "lng_context_edit_factcheck" = "Edit Fact Check";
 "lng_context_add_offer" = "Add Offer";
 "lng_context_forward_msg" = "Forward";
+"lng_context_forward_url" = "Forward URL";
 "lng_context_send_now_msg" = "Send Now";
 "lng_context_reschedule" = "Reschedule";
 "lng_context_delete_msg" = "Delete";
